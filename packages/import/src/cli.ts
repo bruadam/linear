@@ -8,6 +8,7 @@ import { githubImport } from "./importers/github/index.ts";
 import { gitlabCsvImporter } from "./importers/gitlabCsv/index.ts";
 import { jiraCsvImport } from "./importers/jiraCsv/index.ts";
 import { linearCsvImporter } from "./importers/linearCsv/index.ts";
+import { microsoftListCsvImport } from "./importers/microsoftListCsv/index.ts";
 import { pivotalCsvImport } from "./importers/pivotalCsv/index.ts";
 import { shortcutCsvImport } from "./importers/shortcutCsv/index.ts";
 import { trelloJsonImport } from "./importers/trelloJson/index.ts";
@@ -24,6 +25,7 @@ const VALID_SERVICES = [
   "shortcutCsv",
   "trelloJson",
   "linearCsv",
+  "microsoftListCsv",
 ] as const;
 
 const SERVICE_LABELS: Record<(typeof VALID_SERVICES)[number], string> = {
@@ -35,6 +37,7 @@ const SERVICE_LABELS: Record<(typeof VALID_SERVICES)[number], string> = {
   shortcutCsv: "Shortcut (CSV export)",
   trelloJson: "Trello (JSON export)",
   linearCsv: "Linear (CSV export)",
+  microsoftListCsv: "Microsoft List (CSV export)",
 };
 
 const getFlag = (name: string): string | undefined => {
@@ -119,6 +122,9 @@ const hasFlag = (name: string): boolean => process.argv.includes(`--${name}`);
         break;
       case "linearCsv":
         importer = await linearCsvImporter();
+        break;
+      case "microsoftListCsv":
+        importer = await microsoftListCsvImport();
         break;
       default:
         console.error(chalk.red(`Invalid importer`));
