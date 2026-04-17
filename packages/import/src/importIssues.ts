@@ -23,11 +23,12 @@ interface ImportAnswers {
   teamName?: string;
 }
 
-enum IssueStatus {
-  Backlog = "backlog",
-  Started = "started",
-  Completed = "completed",
-}
+const IssueStatus = {
+  Backlog: "backlog",
+  Started: "started",
+  Completed: "completed",
+} as const;
+type IssueStatus = (typeof IssueStatus)[keyof typeof IssueStatus];
 
 const defaultStateColors: Record<IssueStatus, string> = {
   [IssueStatus.Backlog]: "#bec2c8",
