@@ -28,6 +28,7 @@ const IssueStatus = {
   Started: "started",
   Completed: "completed",
 } as const;
+// eslint-disable-next-line no-redeclare
 type IssueStatus = (typeof IssueStatus)[keyof typeof IssueStatus];
 
 const defaultStateColors: Record<IssueStatus, string> = {
@@ -303,23 +304,32 @@ export const importIssues = async (
     let stateId = !!issue.status ? existingStateMap[issue.status.toLowerCase()] : undefined;
     // Create a new state since one doesn't already exist with this name
     if (!stateId && issue.status) {
-      let stateType = IssueStatus.Backlog;
+      let stateType: IssueStatus = IssueStatus.Backlog;
       if (issue.completedAt) {
         stateType = IssueStatus.Completed;
       } else if (issue.startedAt) {
         stateType = IssueStatus.Started;
       }
-      const newStateResult = await client.createWorkflowState({
-        name: issue.status,
-        teamId,
-        color: defaultStateColors[stateType],
-        type: stateType,
-      });
-      if (newStateResult?.success) {
-        const newState = await newStateResult.workflowState;
-        if (newState?.id) {
-          existingStateMap[issue.status.toLowerCase()] = newState.id;
-          stateId = newState.id;
+      try {
+        const newStateResult = await client.createWorkflowState({
+          name: issue.status,
+          teamId,
+          color: defaultStateColors[stateType],
+          type: stateType,
+        });
+        if (newStateResult?.success) {
+          const newState = await newStateResult.workflowState;
+          if (newState?.id) {
+            existingStateMap[issue.status.toLowerCase()] = newState.id;
+            stateId = newState.id;
+          }
+        }
+      } catch {
+        // Sub-teams cannot create their own workflow states; fall back to an existing state of the same type
+        const fallback = workflowStates?.nodes?.find(s => s.type === stateType);
+        if (fallback?.id) {
+          existingStateMap[issue.status.toLowerCase()] = fallback.id;
+          stateId = fallback.id;
         }
       }
     }

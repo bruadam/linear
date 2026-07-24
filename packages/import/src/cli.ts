@@ -42,7 +42,9 @@ const SERVICE_LABELS: Record<(typeof VALID_SERVICES)[number], string> = {
 
 const getFlag = (name: string): string | undefined => {
   const idx = process.argv.indexOf(`--${name}`);
-  if (idx === -1 || idx + 1 >= process.argv.length) {return undefined;}
+  if (idx === -1 || idx + 1 >= process.argv.length) {
+    return undefined;
+  }
   const value = process.argv[idx + 1];
   return value.startsWith("--") ? undefined : value;
 };
@@ -93,7 +95,9 @@ const hasFlag = (name: string): boolean => process.argv.includes(`--${name}`);
     }
 
     if (!linearApiKey) {
-      console.error(chalk.red("No Linear API key provided. Create one here: https://linear.app/settings/account/security"));
+      console.error(
+        chalk.red("No Linear API key provided. Create one here: https://linear.app/settings/account/security")
+      );
       process.exit(1);
     }
 
@@ -124,7 +128,7 @@ const hasFlag = (name: string): boolean => process.argv.includes(`--${name}`);
         importer = await linearCsvImporter();
         break;
       case "microsoftListCsv":
-        importer = await microsoftListCsvImport();
+        importer = await microsoftListCsvImport(linearApiKey, getFlag("apiUrl"));
         break;
       default:
         console.error(chalk.red(`Invalid importer`));
