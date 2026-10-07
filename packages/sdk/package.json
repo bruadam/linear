@@ -1,13 +1,13 @@
 {
   "name": "@linear/sdk",
   "description": "The Linear Client SDK for interacting with the Linear GraphQL API",
-  "version": "81.0.0",
+  "version": "97.0.0",
   "author": "Linear Orbit, Inc",
   "license": "MIT",
   "repository": "https://github.com/linear/linear",
   "type": "module",
   "engines": {
-    "node": ">=18.x"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "files": [
     "webhooks",
@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "test": "vitest",
-    "build:sdk": "tsdown --clean --exports --dts --format esm --format cjs src/index.ts src/webhooks/index.ts",
+    "build:sdk": "tsdown --clean --exports src/index.ts src/webhooks/index.ts",
     "build:types": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
     "generate:changeset:dependencies": "node scripts/generate-dependencies-changeset.ts",
     "generate:changeset:schema": "node scripts/generate-schema-changeset.ts",
@@ -60,24 +60,18 @@
     "tsdown": "catalog:",
     "type-fest": "^5.3.1",
     "typescript": "catalog:",
-    "uuid": "^9.0.1",
-    "vitest": "^4.0.15"
+    "uuid": "^14.0.0",
+    "vitest": "^4.1.0"
   },
   "publishConfig": {
     "access": "public"
   },
-  "main": "./dist/index.cjs",
+  "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.cts",
+  "types": "./dist/index.d.mts",
   "exports": {
-    ".": {
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.mjs"
-    },
-    "./webhooks": {
-      "require": "./dist/webhooks/index.cjs",
-      "import": "./dist/webhooks/index.mjs"
-    },
+    ".": "./dist/index.mjs",
+    "./webhooks": "./dist/webhooks/index.mjs",
     "./package.json": "./package.json"
   }
 }

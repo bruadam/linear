@@ -1,7 +1,7 @@
 {
   "name": "@linear/import",
   "description": "Import helpers for uploading issues to Linear",
-  "version": "3.1.2",
+  "version": "4.0.0",
   "author": "Linear Orbit, Inc",
   "license": "MIT",
   "type": "module",
@@ -13,18 +13,18 @@
   },
   "repository": "https://github.com/linear/linear",
   "engines": {
-    "node": ">=18.x"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "files": [
     "bin",
     "dist"
   ],
   "scripts": {
-    "cli": "ts-node src/cli",
-    "cli:local": "NODE_TLS_REJECT_UNAUTHORIZED=0 ts-node src/cli --apiUrl https://local.linear.dev:8090/graphql",
-    "dev:import": "NODE_ENV=development pnpm run build:import",
+    "cli": "TS_NODE_TRANSPILE_ONLY=true node --loader ts-node/esm src/cli.ts",
+    "cli:local": "NODE_TLS_REJECT_UNAUTHORIZED=0 TS_NODE_TRANSPILE_ONLY=true node --loader ts-node/esm src/cli.ts --apiUrl https://local.linear.dev:8090/graphql",
     "build:import": "tsdown --clean --format cjs src/cli.ts",
-    "build:types": "tsc --noEmit"
+    "build:types": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
+    "test": "vitest"
   },
   "dependencies": {
     "@linear/sdk": "workspace:*",
@@ -34,7 +34,7 @@
     "date-fns": "^2.19.0",
     "inquirer": "7.3.3",
     "inquirer-file-path": "1.0.1",
-    "jira2md": "2.0.4",
+    "jira2md": "3.0.1",
     "lodash": "4.18.1",
     "node-fetch": "2.6.7",
     "ora": "^5.4.1"
@@ -45,7 +45,8 @@
     "@types/node-fetch": "^2.5.7",
     "tsdown": "catalog:",
     "ts-node": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "^4.1.0"
   },
   "publishConfig": {
     "access": "public"

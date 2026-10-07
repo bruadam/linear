@@ -6,28 +6,47 @@ on:
       - master
   workflow_dispatch:
 
+concurrency:
+  group: sdk-publish
+  cancel-in-progress: false
+  # Preserve every queued release snapshot so later master pushes cannot replace one.
+  queue: max
+
+permissions: {}
+
 jobs:
   release:
     name: Release
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     permissions:
-      actions: read
       contents: write
-      checks: write
-      pull-requests: write
-      statuses: read
       id-token: write # Required for OIDC (https://docs.npmjs.com/trusted-publishers#github-actions-configuration)
+      pull-requests: read
+    env:
+      SKIP_RELEASE: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[skip release]') }}
     steps:
+      - name: Report skipped release
+        if: env.SKIP_RELEASE == 'true'
+        run: echo 'Publishing skipped by [skip release]. Validation still runs.' >> "$GITHUB_STEP_SUMMARY"
+
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/setup@703c52620218391530e48b9e8870d5c0082e1b9b # v2.1.0
+        with:
+          install: false
 
       - name: Use node 22
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"
+          cache: "pnpm"
 
       # Ensure npm >= 11.5.1 for OIDC trusted publishers (https://docs.npmjs.com/trusted-publishers#github-actions-configuration)
       # Two-step upgrade works around broken npm in Node 22.22.2 (nodejs/node#62425)
@@ -38,45 +57,60 @@ jobs:
             npm install -g npm@10 && npm install -g npm@latest
           fi
 
-      - name: Enable Corepack
-        run: corepack enable
-
       - name: Install dependencies
         run: pnpm install
 
       - name: Build packages
         run: pnpm build
 
+      - name: Run lint
+        run: pnpm lint
+
       - name: Run tests
         run: pnpm test
 
+      - name: Cache npx tools
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-arethetypeswrong-0.18.2
+
       - name: Validate CJS and ESM resolution for SDK
         # Catch issues like https://github.com/linear/linear/issues/830
-        run: npx @arethetypeswrong/cli@0.18.2 --pack packages/sdk
-
-      - name: Compare schema for changes
-        uses: kamilkisiela/graphql-inspector@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          schema: "master:packages/sdk/src/schema.graphql"
-          fail-on-breaking: false
+        # The SDK is ESM-only, so CommonJS consumers on node16 resolution are expected to resolve to ESM
+        run: npx @arethetypeswrong/cli@0.18.2 --pack packages/sdk --ignore-rules cjs-resolves-to-esm
 
       - name: Check for no generated changes
-        run: git update-index --refresh && git diff-index HEAD
+        run: test -z "$(git status --porcelain)"
 
-      - name: Create Release Pull Request or Publish to npm
-        uses: changesets/action@master
+      # schema.yaml is the only workflow that prepares release pull requests; pending changesets must be versioned there.
+      - name: Publish to npm
+        id: publish
+        if: env.SKIP_RELEASE != 'true' && hashFiles('.changeset/*.md', '!.changeset/README.md') == ''
+        uses: changesets/action@63a615b9cd06ba9a3e6d13796c7fbcb080a60a0b # v1.8.0
         with:
-          commit: "chore(release): version packages"
-          title: "chore(release): version packages"
           publish: pnpm ci:publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify Slack
+        if: steps.publish.outputs.published == 'true'
+        continue-on-error: true
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_CLI_CHANNEL_WEBHOOK_URL }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISHED_PACKAGES: ${{ steps.publish.outputs.publishedPackages }}
+        run: |
+          node .github/scripts/create-release-slack-message.mjs
+          curl -s -X POST "$SLACK_WEBHOOK_URL" -H 'Content-Type: application/json' --data @"$RUNNER_TEMP/sdk-release-slack.json"
 
   notify-slack:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [release]
+    permissions:
+      actions: read
+      contents: read
     if: ${{ always() && github.ref_name == 'master' && contains(needs.*.result, 'failure') }}
     steps:
       - uses: ravsamhq/notify-slack-action@bca2d7f5660b833a27bda4f6b8bef389ebfefd25 # 2.3.0

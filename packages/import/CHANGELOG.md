@@ -1,5 +1,201 @@
 # Change Log
 
+## 4.0.0
+
+### Major Changes
+
+- e09bb8d: **`linear-import` now requires Node.js 20.19+ or 22.12+**, because `@linear/sdk` is now ESM-only. On older Node.js versions, upgrade Node.js or keep using `@linear/import@3`.
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies [8dc7d7a]
+- Updated dependencies [e09bb8d]
+  - @linear/sdk@97.0.0
+
+## 3.2.16
+
+### Patch Changes
+
+- 2d1a591: fix(import): match assignee emails case-insensitively so workspace users whose email contains uppercase characters are no longer left unassigned
+- 1cec52a: fix(import): harden the GitHub importer's API client: retry network errors, server errors and rate limits with backoff, and fail with GitHub's error message instead of importing incomplete data
+- 1cec52a: fix(import): skip GitHub comments from deleted accounts instead of failing the import
+- 29f65c2: fix(import): time out stalled GitHub API requests, and don't retry or print GitHub tokens with characters that can't be sent in a header
+- Updated dependencies
+- Updated dependencies [2d5d122]
+  - @linear/sdk@96.0.0
+
+## 3.2.15
+
+### Patch Changes
+
+- Updated dependencies
+  - @linear/sdk@95.2.0
+
+## 3.2.14
+
+### Patch Changes
+
+- Updated dependencies
+  - @linear/sdk@95.1.0
+
+## 3.2.13
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies [7aaa438]
+- Updated dependencies [2cddc35]
+- Updated dependencies [e5842b5]
+  - @linear/sdk@95.0.0
+
+## 3.2.12
+
+### Patch Changes
+
+- Updated dependencies
+  - @linear/sdk@94.0.0
+
+## 3.2.11
+
+### Patch Changes
+
+- a88ff07: chore(deps): update dependency patch versions
+- Updated dependencies [a88ff07]
+  - @linear/sdk@93.0.1
+
+## 3.2.10
+
+### Patch Changes
+
+- Updated dependencies [44c3fa4]
+  - @linear/sdk@93.0.0
+
+## 3.2.9
+
+### Patch Changes
+
+- Updated dependencies [cda6e4e]
+  - @linear/sdk@92.0.0
+
+## 3.2.8
+
+### Patch Changes
+
+- Updated dependencies [b5d0ba6]
+  - @linear/sdk@91.0.0
+
+## 3.2.7
+
+### Patch Changes
+
+- Updated dependencies [eabc85d]
+- Updated dependencies [9ed3244]
+  - @linear/sdk@90.0.0
+
+## 3.2.6
+
+### Patch Changes
+
+- Updated dependencies [26b546e]
+  - @linear/sdk@89.0.0
+
+## 3.2.5
+
+### Patch Changes
+
+- Updated dependencies [d044ca6]
+- Updated dependencies [8c4627d]
+- Updated dependencies [ee4b5f9]
+  - @linear/sdk@88.3.0
+
+## 3.2.4
+
+### Patch Changes
+
+- Updated dependencies [ef689c9]
+  - @linear/sdk@88.2.0
+
+## 3.2.3
+
+### Patch Changes
+
+- Updated dependencies [1e4336d]
+- Updated dependencies [62692ff]
+  - @linear/sdk@88.1.0
+
+## 3.2.2
+
+### Patch Changes
+
+- Updated dependencies [934b32b]
+- Updated dependencies [bf170e4]
+- Updated dependencies [d4b9532]
+  - @linear/sdk@88.0.0
+
+## 3.2.1
+
+### Patch Changes
+
+- Updated dependencies [4741cf9]
+- Updated dependencies [df20561]
+- Updated dependencies [440524b]
+- Updated dependencies [296beb5]
+- Updated dependencies [c128bbb]
+  - @linear/sdk@87.0.0
+
+## 3.2.0
+
+### Minor Changes
+
+- cac3f6d: fix(import): stop pre-uploading images via `imageUploadFromUrl` in the Shortcut CSV importer.
+
+### Patch Changes
+
+- Updated dependencies [bd88158]
+  - @linear/sdk@86.0.0
+
+## 3.1.7
+
+### Patch Changes
+
+- 66bce60: fix(import): route CSV statuses that match a workflow state of type `duplicate` to the team's canceled state instead of passing the duplicate-type state id to `createIssue`, which the server rejects with `Cannot create an issue in a duplicate state`
+- Updated dependencies [fb1f69d]
+- Updated dependencies [7f440a4]
+- Updated dependencies [fcfb698]
+  - @linear/sdk@85.0.0
+
+## 3.1.6
+
+### Patch Changes
+
+- Updated dependencies [e22e0f3]
+- Updated dependencies [0ffbefb]
+  - @linear/sdk@84.0.0
+
+## 3.1.5
+
+### Patch Changes
+
+- Updated dependencies [f9c9ea6]
+- Updated dependencies [eca02b9]
+- Updated dependencies [e93813d]
+  - @linear/sdk@83.0.0
+
+## 3.1.4
+
+### Patch Changes
+
+- Updated dependencies [d1c3668]
+  - @linear/sdk@82.1.0
+
+## 3.1.3
+
+### Patch Changes
+
+- Updated dependencies [1af2a6d]
+  - @linear/sdk@82.0.0
+
 ## 3.1.2
 
 ### Patch Changes

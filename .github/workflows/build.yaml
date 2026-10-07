@@ -9,32 +9,44 @@ on:
   # Allow manually triggering the workflow
   workflow_dispatch:
 
-permissions:
-  contents: write
-  checks: write
-  pull-requests: write
+permissions: {}
 
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check release branch is up to date with master
+        if: github.ref == 'refs/heads/changeset-release/master'
+        run: git merge-base --is-ancestor origin/master HEAD
+
+      - name: Install pnpm
+        uses: pnpm/setup@703c52620218391530e48b9e8870d5c0082e1b9b # v2.1.0
+        with:
+          install: false
 
       - name: Use node 22
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "22"
-
-      - name: Enable Corepack
-        run: corepack enable
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Run lint
+        run: pnpm lint
 
       - name: Build packages
         run: pnpm build
@@ -42,12 +54,19 @@ jobs:
       - name: Run tests
         run: pnpm test
 
+      - name: Cache npx tools
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-arethetypeswrong-0.18.2
+
       - name: Validate CJS and ESM resolution for SDK
         # Catch issues like https://github.com/linear/linear/issues/830
-        run: npx @arethetypeswrong/cli@0.18.2 --pack packages/sdk
+        # The SDK is ESM-only, so CommonJS consumers on node16 resolution are expected to resolve to ESM
+        run: npx @arethetypeswrong/cli@0.18.2 --pack packages/sdk --ignore-rules cjs-resolves-to-esm
 
       - name: Compare schema for changes
-        uses: kamilkisiela/graphql-inspector@master
+        uses: graphql-hive/graphql-inspector@8733c10560f98b868d3eb4db1325c8edf64936b3 # @graphql-inspector/action@5.0.21
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           schema: "master:packages/sdk/src/schema.graphql"
@@ -62,7 +81,7 @@ jobs:
           pnpm pack --out linear-sdk.tar.gz
 
       - name: Upload SDK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: linear-sdk
           path: packages/sdk/linear-sdk.tar.gz
@@ -74,7 +93,7 @@ jobs:
           pnpm pack --out linear-import.tar.gz
 
       - name: Upload import artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: linear-import
           path: packages/import/linear-import.tar.gz
@@ -84,24 +103,38 @@ jobs:
     name: Smoke Test ${{ matrix.module }} (Node ${{ matrix.node }} / TS ${{ matrix.typescript }})
     runs-on: ubuntu-latest
     needs: build
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
         node: ["20", "24"]
         typescript: ["5.7", "5.9"]
-        module: ["cjs", "esm"]
+        module: ["cjs", "cjs-nodenext", "esm"]
+        exclude:
+          # TypeScript only allows importing ESM from CommonJS under nodenext from 5.8
+          - module: cjs-nodenext
+            typescript: "5.7"
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
 
       - name: Use Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: ${{ matrix.node }}
 
+      - name: Cache npm downloads
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-smoke-node${{ matrix.node }}-ts${{ matrix.typescript }}
+
       - name: Download SDK artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: linear-sdk
 
@@ -120,22 +153,32 @@ jobs:
     name: Smoke Test Import (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
     needs: build
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
-        node: ["18", "20", "22", "24"]
+        node: ["20", "22", "24"]
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
 
       - name: Use Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: ${{ matrix.node }}
 
+      - name: Cache npm downloads
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-smoke-import-node${{ matrix.node }}
+
       - name: Download import artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: linear-import
 
@@ -153,6 +196,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [build]
+    permissions:
+      actions: read
+      contents: read
     if: ${{ always() && github.ref_name == 'master' && contains(needs.*.result, 'failure') }}
     steps:
       - uses: ravsamhq/notify-slack-action@bca2d7f5660b833a27bda4f6b8bef389ebfefd25 # 2.3.0

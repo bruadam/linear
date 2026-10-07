@@ -263,9 +263,20 @@ export const importIssues = async (
   const labelMapping = await handleLabels(client, importData, teamId, [...allTeamLabels, ...allWorkspaceLabels]);
 
   const existingStateMap = {} as { [name: string]: string };
+  const canceledStateId = workflowStates?.nodes?.find(state => state.type === "canceled")?.id;
   for (const state of workflowStates?.nodes ?? []) {
     const stateName = state.name?.toLowerCase();
-    if (stateName && state.id && !existingStateMap[stateName]) {
+    if (!stateName || !state.id) {
+      continue;
+    }
+    if (state.type === "duplicate") {
+      // duplicate-type states are rejected by createIssue; route incoming statuses with this name to canceled instead
+      if (canceledStateId && !existingStateMap[stateName]) {
+        existingStateMap[stateName] = canceledStateId;
+      }
+      continue;
+    }
+    if (!existingStateMap[stateName]) {
       existingStateMap[stateName] = state.id;
     }
   }
@@ -278,8 +289,9 @@ export const importIssues = async (
       existingUserMapByName[userName] = user.id;
     }
 
-    if (!existingUserMapByEmail[user.email]) {
-      existingUserMapByEmail[user.email] = user.id;
+    const userEmail = user.email?.toLowerCase();
+    if (userEmail && !existingUserMapByEmail[userEmail]) {
+      existingUserMapByEmail[userEmail] = user.id;
     }
   }
 
@@ -291,7 +303,9 @@ export const importIssues = async (
   // Create issues
   for (const issue of importData.issues) {
     const issueDescription = issue.description
-      ? await replaceImagesInMarkdown(client, issue.description, importData.resourceURLSuffix)
+      ? importData.skipImageReplacement
+        ? issue.description
+        : await replaceImagesInMarkdown(client, issue.description, importData.resourceURLSuffix)
       : undefined;
 
     const description =
@@ -395,7 +409,9 @@ const buildComments = async (
     const user = importData.users[comment.userId];
     const date = comment.createdAt ? comment.createdAt.toISOString().split("T")[0] : undefined;
 
-    const body = await replaceImagesInMarkdown(client, comment.body || "", importData.resourceURLSuffix);
+    const body = importData.skipImageReplacement
+      ? comment.body || ""
+      : await replaceImagesInMarkdown(client, comment.body || "", importData.resourceURLSuffix);
     newComments.push(`**${user.name}**${" " + date}\n\n${body}\n`);
   }
   return `${description}\n\n---\n\n${newComments.join("\n\n")}`;

@@ -1,5 +1,23 @@
 # Change Log
 
+## 3.3.5
+
+### Patch Changes
+
+- b6024c1: Only reuse model queries when response fields match the argument types. Generate ID getters only when the query selects an ID.
+
+## 3.3.4
+
+### Patch Changes
+
+- a88ff07: chore(deps): update dependency patch versions
+
+## 3.3.3
+
+### Patch Changes
+
+- 88ea685: defends against JSDoc comment injection in the SDK codegen
+
 ## 3.3.2
 
 ### Patch Changes

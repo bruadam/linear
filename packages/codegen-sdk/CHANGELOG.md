@@ -1,5 +1,34 @@
 # Change Log
 
+## 4.0.6
+
+### Patch Changes
+
+- b6024c1: Only reuse model queries when response fields match the argument types. Generate ID getters only when the query selects an ID.
+- Updated dependencies [b6024c1]
+  - @linear/codegen-doc@3.3.5
+
+## 4.0.5
+
+### Patch Changes
+
+- a88ff07: chore(deps): update dependency patch versions
+- Updated dependencies [a88ff07]
+  - @linear/codegen-doc@3.3.4
+
+## 4.0.4
+
+### Patch Changes
+
+- 8c4627d: fix nested model queries with optional arguments
+
+## 4.0.3
+
+### Patch Changes
+
+- Updated dependencies [88ea685]
+  - @linear/codegen-doc@3.3.3
+
 ## 4.0.2
 
 ### Patch Changes
@@ -31,9 +60,7 @@
   ```ts
   import { DocumentNode } from "graphql";
 
-  const documentNode: DocumentNode = {
-    /* ... */
-  };
+  const documentNode: DocumentNode = {/* ... */};
   const graphQLClient = linearClient.client;
 
   await client.request(documentNode);
@@ -44,9 +71,7 @@
   ```ts
   import { DocumentNode, print } from "graphql";
 
-  const documentNode: DocumentNode = {
-    /* ... */
-  };
+  const documentNode: DocumentNode = {/* ... */};
   const graphQLClient = linearClient.client;
 
   await client.request(print(documentNode));

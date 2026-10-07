@@ -10,7 +10,7 @@ export default defineConfig(
   {
     languageOptions: {
       parserOptions: {
-        project: ["./packages/*/tsconfig.json", "./packages/sdk/tsconfig.test.json"],
+        project: ["./packages/*/tsconfig.json", "./packages/*/tsconfig.test.json"],
       },
     },
   },
@@ -104,5 +104,9 @@ export default defineConfig(
       "jsdoc/newline-after-description": "off",
       "no-extra-boolean-cast": "off",
     },
+  },
+  {
+    files: [".github/scripts/*.mjs"],
+    extends: [tseslint.configs.disableTypeChecked],
   }
 );
