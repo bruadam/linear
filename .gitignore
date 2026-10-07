@@ -95,3 +95,4 @@ TODO
 # Next.js & Vercel
 .next
 .vercel
+*.csv

@@ -13,7 +13,7 @@
     "build:types": "pnpm run -r build:types",
     "build": "run-s generate build:sdk generate:test build:import build:types docs",
     "dev": "NODE_ENV=development pnpm build",
-    "docs": "md-magic 'packages/**/README.md' --config ./docs/markdown-magic.config.js",
+    "docs": "md-magic \"packages/**/README.md\" --config ./docs/markdown-magic.config.js",
     "generate:clean": "pnpm run -r generate:clean",
     "generate:doc": "pnpm run -r build:codegen-doc && pnpm run -r generate:doc",
     "generate:sdk": "pnpm run -r build:codegen-sdk && pnpm run -r generate:sdk",

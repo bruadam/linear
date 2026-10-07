@@ -183,8 +183,11 @@ function parseLabelName(fullName: string): [string | undefined, string] {
 class LabelManager {
   private nameToLabel: Record<string, { [teamId: Id | typeof WORKSPACE_ID]: Label }> = {};
   private idToLabel: Record<Id, { [teamId: Id | typeof WORKSPACE_ID]: Label }> = {};
+  private teamId: Id;
 
-  public constructor(private teamId: Id) {}
+  public constructor(teamId: Id) {
+    this.teamId = teamId;
+  }
 
   /**
    * Create a new label manager.
@@ -343,6 +346,10 @@ const deleteLabel = async (client: LinearClient, labelId: Id) => {
 
 /** A root label */
 class Label {
+  public id: Id;
+  private name: string;
+  public existedBeforeImport: boolean;
+
   /**
    * Create a new label
    *
@@ -350,11 +357,11 @@ class Label {
    * @param name Label name as it was imported
    * @param existedBeforeImport Whether the label existed before the import
    */
-  public constructor(
-    public id: Id,
-    private name: string,
-    public existedBeforeImport: boolean = false
-  ) {}
+  public constructor(id: Id, name: string, existedBeforeImport: boolean = false) {
+    this.id = id;
+    this.name = name;
+    this.existedBeforeImport = existedBeforeImport;
+  }
 
   public get normalizedName() {
     return Label.normalizeName(this.name);
